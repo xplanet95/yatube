@@ -13,10 +13,12 @@ class PostAdmin(admin.ModelAdmin):
     # это свойство сработает для всех колонок: где пусто - там будет эта строка
     empty_value_display = "-пусто-"
 
+
 class GroupAdmin(admin.ModelAdmin):
     list_display = ("pk", "title", "slug", "description")
     search_fields = ("title",)
     empty_value_display = "-пусто-"
+
 
 # при регистрации модели Post источником конфигурации для неё назначаем класс PostAdmin
 admin.site.register(Post, PostAdmin)
