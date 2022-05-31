@@ -37,5 +37,5 @@ def new_post(request):
         context = {
             'form': form,
         }
-        response = render(request, 'new_post.html', context)
+        response = render(request, 'new.html', context)
         return response
