@@ -1,5 +1,6 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render,redirect , get_object_or_404
 from .models import Post, Group
+from .forms import PostForm
 
 
 def index(request):
@@ -7,6 +8,7 @@ def index(request):
     context = {"posts": latest}
     response = render(request, "index.html", context)
     return response
+
 
 def group_posts(request, slug):
     # функция get_object_or_404 получает по заданным критериям объект из базы данных
@@ -19,3 +21,18 @@ def group_posts(request, slug):
     posts = group.posts.all().order_by("-pub_date")[:12]
     context = {"group": group, "posts": posts}
     return render(request, "group.html", context)
+
+
+def new_post(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('index')
+    else:
+        form = PostForm()
+        context = {
+            'form': form
+        }
+        response = render(request, 'new.html', context)
+        return
