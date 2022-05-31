@@ -27,12 +27,15 @@ def new_post(request):
     if request.method == 'POST':
         form = PostForm(request.POST)
         if form.is_valid():
-            form.save()
+            author = request.user
+            text = form.cleaned_data['text']
+            group = form.cleaned_data['group']
+            Post.objects.create(author, text, group)
             return redirect('index')
     else:
         form = PostForm()
         context = {
-            'form': form
+            'form': form,
         }
-        response = render(request, 'new.html', context)
-        return
+        response = render(request, 'new_post.html', context)
+        return response
