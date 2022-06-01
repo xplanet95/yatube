@@ -2,13 +2,13 @@ from django import forms
 from .models import Post
 
 
-class PostForm(forms.Form):
+class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         # fields = '__all__'
         fields = ['text', 'group']
         widgets = {
-            'text': forms.TextInput(),
+            'text': forms.Textarea(),
             'group': forms.Select(),
         }
             # attrs = {'class': 'form-control'}
