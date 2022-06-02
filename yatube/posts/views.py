@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect , get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Post, Group
 from .forms import PostForm
 # from django.views.generic import CreateView
@@ -39,6 +39,11 @@ def new_post(request):
                 group=form.cleaned_data['group']
             )
             return redirect('index')
+        context = {
+            'form': form,
+        }
+        response = render(request, 'new.html', context)
+        return response
     else:
         form = PostForm()
         context = {
