@@ -47,11 +47,6 @@ def new_post(request):
                 group=form.cleaned_data['group']
             )
             return redirect('index')
-        context = {
-            'form': form,
-        }
-        response = render(request, 'new.html', context)
-        return response
     else:
         form = PostForm()
         context = {
@@ -92,24 +87,13 @@ def post_edit(request, username, post_id):
     # который вы создали раньше (вы могли назвать шаблон иначе)
     post_list = Post.objects.filter(author_id=User.objects.get(username=username))
     post = post_list.get(id=post_id)
-    if request.method == 'POST' and username == request.user:
+    if request.method == 'POST' and request.user == post.author:
         form = PostForm(request.POST)
         if form.is_valid():
             post.text = form.cleaned_data['text']
             post.group = form.cleaned_data['group']
             post.save()
-            # Post.objects.property(
-            #     text=form.cleaned_data['text'],
-            #     # author=request.user,
-            #     group=form.cleaned_data['group']
-            # )
-            # object.save()
             return redirect('index')
-        context = {
-            'form': form,
-        }
-        response = render(request, 'new.html', context)
-        return response
     else:
         form = PostForm()
         context = {

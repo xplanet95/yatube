@@ -17,9 +17,12 @@
                   <div class="alert alert-danger" role="alert">
                       {{ error|escape }}
                   </div>
-                {% endfor %}
-
-                <form method="post" action="{% url 'new_post' %}">
+              {% endfor %}
+                  {% if post == '' %}
+                    <form method="post" action="{% url 'new_post' %}">
+                  {% elif user == post.author %}
+                    <form method="post" action="/{{ post.author }}/{{ post.id }}/edit/">
+                  {% endif %}
                     {% csrf_token %}
 
                     {% for field in form %}
