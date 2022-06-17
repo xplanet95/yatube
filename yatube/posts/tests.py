@@ -1,4 +1,6 @@
 from django.test import TestCase, Client
+from django.urls import reverse
+
 from .models import User, Post
 
 
@@ -12,12 +14,12 @@ class UsersPagesTest(TestCase):
         #     text="You're talking about things I haven't done yet in the past tense. It's driving me crazy!",
         #     author=self.user)
 
-    def profile_page_create_test(self):
+    def test_profile_page_create(self):
         response = self.client.get(f'/{self.user.username}/')
         self.assertEqual(response.status_code, 200)
 
-    def login_user_can_create_post_test(self):
-        response = self.client.get(f'new_post')
+    def test_login_user_can_create_post_test(self):
+        response = self.client.get(reverse('new_post'))
         self.assertEqual(response.status_code, 200)
 
 # class TestStringMethods(TestCase):
