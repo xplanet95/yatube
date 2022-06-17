@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Post, Group, User
 from .forms import PostForm
@@ -36,6 +37,7 @@ def group_posts(request, slug):
 #     template_name = 'new.html'
 #     success_url = reverse_lazy('index')
 
+@login_required
 def new_post(request):
     post = ''
     if request.method == 'POST':
@@ -87,7 +89,7 @@ def post_edit(request, username, post_id):
     # который вы создали раньше (вы могли назвать шаблон иначе)
     post_list = Post.objects.filter(author_id=User.objects.get(username=username))
     post = post_list.get(id=post_id)
-    if request.method == 'POST' and request.user == post.author:
+    if request.method == 'POST':
         form = PostForm(request.POST)
         if form.is_valid():
             post.text = form.cleaned_data['text']
@@ -95,10 +97,13 @@ def post_edit(request, username, post_id):
             post.save()
             return redirect('index')
     else:
-        form = PostForm()
-        context = {
-            'form': form,
-            'post': post
-        }
-        response = render(request, 'new.html', context)
-    return response
+        if request.user == post.author:
+            form = PostForm()
+            context = {
+                'form': form,
+                'post': post
+            }
+            response = render(request, 'new.html', context)
+            return response
+        else:
+            return redirect('post', username=post.author, post_id=post.id)

@@ -6,6 +6,7 @@ urlpatterns = [
     # Главная страница
     path("", views.index, name="index"),
     path("new/", views.new_post, name='new_post'),
+    path("group/<str:slug>/", views.group_posts),
     # Профайл пользователя
     path('<str:username>/', views.profile, name='profile'),
     # Просмотр записи
@@ -15,7 +16,6 @@ urlpatterns = [
         views.post_edit,
         name='post_edit'
     ),
-    path("group/<str:slug>/", views.group_posts),
 
     # path('new/', views.CreateNewPost.as_view(), name='new_post'),
 ]
