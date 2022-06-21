@@ -68,7 +68,8 @@ def profile(request, username):
     page = paginator.get_page(page_number)  # получить записи с нужным смещением
     context = {'page': page,
                'paginator': paginator,
-               'cnt_of_posts': cnt_of_posts}
+               'cnt_of_posts': cnt_of_posts,
+               'username': username}
     response = render(request, "profile.html", context)
     return response
 
@@ -77,7 +78,9 @@ def post_view(request, username, post_id):
     post_list = Post.objects.filter(author_id=User.objects.get(username=username))
     post = post_list.get(id=post_id)
     cnt_of_posts = post_list.count()
-    context = {'post': post, 'cnt_of_posts': cnt_of_posts}
+    context = {'post': post,
+               'cnt_of_posts': cnt_of_posts,
+               'username': post.author}
     response = render(request, "post.html", context)
     return response
 
@@ -87,23 +90,27 @@ def post_edit(request, username, post_id):
     # что текущий пользователь — это автор записи.
     # В качестве шаблона страницы редактирования укажите шаблон создания новой записи
     # который вы создали раньше (вы могли назвать шаблон иначе)
-    post_list = Post.objects.filter(author_id=User.objects.get(username=username))
-    post = post_list.get(id=post_id)
+    post = get_object_or_404(Post, id=post_id, author__username=username)
     if request.method == 'POST':
         form = PostForm(request.POST)
         if form.is_valid():
             post.text = form.cleaned_data['text']
             post.group = form.cleaned_data['group']
             post.save()
-            return redirect('index')
-    else:
-        if request.user == post.author:
-            form = PostForm()
-            context = {
-                'form': form,
-                'post': post
-            }
-            response = render(request, 'new.html', context)
-            return response
+            return redirect('post', username=post.author.username, post_id=post.id)
+            # redirect(f'/{post.author.username}/{post.id}/')
         else:
-            return redirect('post', username=post.author, post_id=post.id)
+            if request.user == post.author:
+                form = PostForm()
+                context = {
+                    'form': form,
+                    'post': post,
+                    'username': post.author.username
+                }
+                response = render(request, 'new.html', context)
+                return response
+            else:
+                return redirect('post', username=post.author.username, post_id=post.id)
+                # redirect(f'/{post.author.username}/{post.id}/')
+                # redirect(reverse('post', {'username': username, 'post_id': post.id}))
+                # redirect('post', username=username, post_id=post.id)
