@@ -97,18 +97,18 @@ def post_edit(request, username, post_id):
             post.save()
             return redirect('post', username=post.author.username, post_id=post.id)
             # redirect(f'/{post.author.username}/{post.id}/')
+    else:
+        if request.user == post.author:
+            form = PostForm()
+            context = {
+                'form': form,
+                'post': post,
+                'username': post.author.username
+            }
+            response = render(request, 'new.html', context)
+            return response
         else:
-            if request.user == post.author:
-                form = PostForm()
-                context = {
-                    'form': form,
-                    'post': post,
-                    'username': post.author.username
-                }
-                response = render(request, 'new.html', context)
-                return response
-            else:
-                return redirect('post', username=post.author.username, post_id=post.id)
-                # redirect(f'/{post.author.username}/{post.id}/')
-                # redirect(reverse('post', {'username': username, 'post_id': post.id}))
-                # redirect('post', username=username, post_id=post.id)
+            return redirect('post', username=post.author.username, post_id=post.id)
+            # redirect(f'/{post.author.username}/{post.id}/')
+            # redirect(reverse('post', {'username': username, 'post_id': post.id}))
+            # redirect('post', username=username, post_id=post.id)
