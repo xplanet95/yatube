@@ -6,7 +6,7 @@
 <div class="row justify-content-center">
     <div class="col-md-8 p-5">
         <div class="card">
-            {% if post == '' %}
+            {% if post == None %}
                 <div class="card-header">Добавить новость</div>
             {% elif user == post.author %}
                 <div class="card-header">Редактировать новость</div>
@@ -18,7 +18,7 @@
                       {{ error|escape }}
                   </div>
               {% endfor %}
-                  {% if post == '' %}
+                  {% if post == None %}
                     <form method="post" action="{% url 'new_post' %}">
                   {% elif user == post.author %}
                     <form method="post" action="/{{ post.author }}/{{ post.id }}/edit/">
@@ -41,7 +41,7 @@
                     {% endfor %}
 
                     <div class="col-md-6 offset-md-4">
-                            {% if post == '' %}
+                            {% if post == None %}
                             <button type="submit" class="btn btn-primary">
                                 Добавить
                             </button>

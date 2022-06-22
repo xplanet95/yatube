@@ -38,8 +38,7 @@ def group_posts(request, slug):
 #     success_url = reverse_lazy('index')
 
 @login_required
-def new_post(request):
-    post = ''
+def new_post(request, post=None):
     if request.method == 'POST':
         form = PostForm(request.POST)
         if form.is_valid():
@@ -49,18 +48,17 @@ def new_post(request):
                 group=form.cleaned_data['group']
             )
             return redirect('index')
-    else:
-        form = PostForm()
-        context = {
-            'form': form,
-            'post': post
-        }
-        response = render(request, 'new.html', context)
-        return response
+    form = PostForm()
+    context = {
+        'form': form,
+        'post': post
+    }
+    response = render(request, 'new.html', context)
+    return response
 
 
 def profile(request, username):
-    # username = request.user
+    username = get_object_or_404(User, username=username)
     post_list = Post.objects.filter(author_id=User.objects.get(username=username)).order_by('-pub_date')
     cnt_of_posts = post_list.count()
     paginator = Paginator(post_list, 10)
