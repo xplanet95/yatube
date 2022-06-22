@@ -1,5 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Добавить новость{% endblock %}
+
+{% block title %}
+{% if post == None %}
+Добавить новость
+{% elif user == post.author %}
+Редактировать новость
+{% endif %}
+{% endblock %}
+
 {% load user_filters %}
 
 {% block content %}
@@ -21,7 +29,7 @@
                   {% if post == None %}
                     <form method="post" action="{% url 'new_post' %}">
                   {% elif user == post.author %}
-                    <form method="post" action="/{{ post.author }}/{{ post.id }}/edit/">
+                    <form method="post" action="/profile/{{ post.author }}/{{ post.id }}/edit/">
                   {% endif %}
                     {% csrf_token %}
 

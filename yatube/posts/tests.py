@@ -18,7 +18,7 @@ class UsersPagesTest(TestCase):
             author=self.user)
 
     def test_profile_page_create(self):
-        response = self.client.get(f'/{self.user.username}/')
+        response = self.client.get(f'/profile/{self.user.username}/')
         self.assertEqual(response.status_code, 200)
 
     def test_login_user_can_create_post(self):
@@ -34,22 +34,25 @@ class UsersPagesTest(TestCase):
                              fetch_redirect_response=True)
 
     def test_after_publish_post(self):
-        urls = ['', f'/{self.user.username}/', f'/{self.user.username}/{self.post.id}/']
+        urls = ['', f'/profile/{self.user.username}/', f'/profile/{self.user.username}/{self.post.id}/']
         for url in urls:
             response = self.client.get(url)
             self.assertContains(response, self.post.text.replace('\'', '&#39;'), count=None, msg_prefix='', html=False)
 
     def test_login_user_can_update_post(self):
-        response = self.client.get(f'/{self.user.username}/{self.post.id}/')
+        response = self.client.get(f'/profile/{self.user.username}/{self.post.id}/')
         self.assertEqual(response.status_code, 200)
 
         self.post.text = 'New string (up\'dated)'
         self.post.save()
-        urls = ['', f'/{self.user.username}/', f'/{self.user.username}/{self.post.id}/']
+        urls = ['', f'/profile/{self.user.username}/', f'/profile/{self.user.username}/{self.post.id}/']
         for url in urls:
             response = self.client.get(url)
             self.assertContains(response, self.post.text.replace('\'', '&#39;'), count=None, msg_prefix='', html=False)
 
+    def test_404_page(self):
+        response = self.client.get(f'krakazyabra_neponatnaya!!')
+        self.assertEqual(response.status_code, 404)
 
 
         # self.assertIn(post.text, response.content)

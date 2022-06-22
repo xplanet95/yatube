@@ -41,7 +41,7 @@
                         <div class="card-body">
                                 <p class="card-text">
                                         <!-- Ссылка на страницу автора в атрибуте href; username автора в тексте ссылки -->
-                                        <a href="/{{ username }}/"><strong class="d-block text-gray-dark">{{ username }}</strong></a>
+                                        <a href="/profile/{{ username }}/"><strong class="d-block text-gray-dark">{{ username }}</strong></a>
                                         <!-- Текст поста -->
                                         {{ post.text }}
                                 </p>
@@ -49,7 +49,7 @@
                                         <div class="btn-group ">
                                                 <!-- Ссылка на редактирование, показывается только автору записи -->
                                                 {% if user == username %}
-                                                    <a class="btn btn-sm text-muted" href="/{{ username }}/{{ post.id }}/edit" role="button">Редактировать</a>
+                                                    <a class="btn btn-sm text-muted" href="/profile/{{ username }}/{{ post.id }}/edit" role="button">Редактировать</a>
                                                 {% endif %}
                                         </div>
                                         <!-- Дата публикации  -->
