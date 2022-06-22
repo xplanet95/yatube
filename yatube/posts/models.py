@@ -15,10 +15,12 @@ class Group(models.Model):
 
 class Post(models.Model):
     text = models.TextField(verbose_name='Текст записи')
-    pub_date = models.DateTimeField("date published", auto_now_add=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
-    group = models.ForeignKey(Group, on_delete=models.SET_NULL, related_name="posts",
+    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")  # author_posts
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="posts",  # group_posts
                               blank=True, null=True, verbose_name='Группа')
+    # поле для картинки
+    image = models.ImageField(upload_to='posts/', blank=True, null=True)
 
     def __str__(self):
         return self.text
