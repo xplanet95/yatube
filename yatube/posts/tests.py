@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import User, Post
+from .models import User, Post, Group
 
 
 class UsersPagesTest(TestCase):
@@ -10,12 +10,15 @@ class UsersPagesTest(TestCase):
         self.user_data = {
             'username': "sarah",
             'email': "connor.s@skynet.com",
-            'password': "12345"}
+            'password': "12345"
+        }
         self.user = User.objects.create_user(**self.user_data)
         self.client.post('/auth/login/', self.user_data, follow=True)
-        self.post = Post.objects.create(
+        self.group = Group.objects.create(title='Собаки', slug='dogs', description='--')
+        self.post = Post.objects.create(  # noqa
             text="You're talking about things I haven't done yet in the past tense. It's driving me crazy!",
-            author=self.user)
+            author=self.user,
+            group=self.group)
 
     def test_profile_page_create(self):
         response = self.client.get(f'/profile/{self.user.username}/')
@@ -48,12 +51,35 @@ class UsersPagesTest(TestCase):
         urls = ['', f'/profile/{self.user.username}/', f'/profile/{self.user.username}/{self.post.id}/']
         for url in urls:
             response = self.client.get(url)
-            self.assertContains(response, self.post.text.replace('\'', '&#39;'), count=None, msg_prefix='', html=False)
+            self.assertContains(response,
+                                self.post.text.replace('\'', '&#39;'),
+                                count=None, msg_prefix='',
+                                html=False)
 
     def test_404_page(self):
         response = self.client.get(f'krakazyabra_neponatnaya!!')
         self.assertEqual(response.status_code, 404)
 
+    def test_img_is_inst(self):
+        with open('media/posts/file.jpg', 'rb') as img:
+            self.post = self.client.post(f'/profile/{self.user.username}/{self.post.id}/edit/',
+                {
+                    'author': self.user,
+                    'text': 'post with image',
+                    'group': self.group,
+                    'image': img
+                }, follow=True)
+        self.assertEqual(self.post.status_code, 200)
+        self.assertEqual(Post.objects.count(), 1)
+        urls = [
+            '',
+        #     f'/profile/{self.user.username}/',
+        #     # f'/profile/{self.user.username}/{self.post.id}/',
+        #     # f'/group/{self.post.group.slug}/',
+        ]
+        for url in urls:
+            response = self.client.get(url)
+            self.assertContains(response, f'<img', count=None, msg_prefix='', html=False)
 
         # self.assertIn(post.text, response.content)
             # self.assertEqual(response.content, post.text)
