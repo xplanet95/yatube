@@ -1,3 +1,6 @@
+# Django media
+media/
+
 # Byte-compiled / optimized / DLL files
 .idea/
 __pycache__/
