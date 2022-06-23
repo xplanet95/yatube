@@ -7,8 +7,8 @@ class PostForm(forms.ModelForm):
         model = Post
         # fields = '__all__'
         fields = ['text', 'group', 'image']
-        widgets = {
-            'text': forms.Textarea(),
-            'group': forms.Select(),
-        }
+        # widgets = {
+        #     'text': forms.Textarea(),
+        #     'group': forms.Select(),
+        # }
             # attrs = {'class': 'form-control'}

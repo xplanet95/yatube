@@ -83,32 +83,49 @@ def post_view(request, username, post_id):
     return response
 
 
+@login_required
 def post_edit(request, username, post_id):
+    profile = get_object_or_404(User, username=username)
+    post = get_object_or_404(Post, pk=post_id, author=profile)
+    if request.user != profile:
+        return redirect('post', username=username, post_id=post_id)
+    # добавим в form свойство files
+    # or None, что бы отрисовывать пустую форму, instance что бы save() обновлял а не создавал
+    form = PostForm(request.POST or None, files=request.FILES or None, instance=post)
+
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            return redirect("post", username=request.user.username, post_id=post_id)
+    context = {'form': form, 'post': post}
+    return render(request, 'new.html', context)
+
+    # старый post edit
     # тут тело функции. Не забудьте проверить,
     # что текущий пользователь — это автор записи.
     # В качестве шаблона страницы редактирования укажите шаблон создания новой записи
     # который вы создали раньше (вы могли назвать шаблон иначе)
-    post = get_object_or_404(Post, id=post_id, author__username=username)
-    if request.method == 'POST':
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post.text = form.cleaned_data['text']
-            post.group = form.cleaned_data['group']
-            post.save()
-            return redirect('post', username=post.author.username, post_id=post.id)
-            # redirect(f'/{post.author.username}/{post.id}/')
-    else:
-        if request.user == post.author:
-            form = PostForm()
-            context = {
-                'form': form,
-                'post': post,
-                'username': post.author.username
-            }
-            response = render(request, 'new.html', context)
-            return response
-        else:
-            return redirect('post', username=post.author.username, post_id=post.id)
+    # post = get_object_or_404(Post, id=post_id, author__username=username)
+    # if request.method == 'POST':
+    #     form = PostForm(request.POST)
+    #     if form.is_valid():
+    #         post.text = form.cleaned_data['text']
+    #         post.group = form.cleaned_data['group']
+    #         post.save()
+    #         return redirect('post', username=post.author.username, post_id=post.id)
+    #         # redirect(f'/{post.author.username}/{post.id}/')
+    # else:
+    #     if request.user == post.author:
+    #         form = PostForm()
+    #         context = {
+    #             'form': form,
+    #             'post': post,
+    #             'username': post.author.username
+    #         }
+    #         response = render(request, 'new.html', context)
+    #         return response
+    #     else:
+    #         return redirect('post', username=post.author.username, post_id=post.id)
             # redirect(f'/{post.author.username}/{post.id}/')
             # redirect(reverse('post', {'username': username, 'post_id': post.id}))
             # redirect('post', username=username, post_id=post.id)

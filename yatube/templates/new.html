@@ -27,7 +27,7 @@
                   </div>
               {% endfor %}
                   {% if post == None %}
-                    <form method="post" action="{% url 'new_post' %}">
+                    <form method="post" action="{% url 'new_post' %}" enctype="multipart/form-data">
                   {% elif user == post.author %}
                     <form method="post" action="/profile/{{ post.author }}/{{ post.id }}/edit/">
                   {% endif %}
