@@ -15,6 +15,7 @@ class UsersPagesTest(TestCase):
         self.user = User.objects.create_user(**self.user_data)
         self.client.post('/auth/login/', self.user_data, follow=True)
         self.group = Group.objects.create(title='Собаки', slug='dogs', description='--')
+
         self.post = Post.objects.create(  # noqa
             text="You're talking about things I haven't done yet in the past tense. It's driving me crazy!",
             author=self.user,
@@ -60,15 +61,22 @@ class UsersPagesTest(TestCase):
         response = self.client.get(f'krakazyabra_neponatnaya!!')
         self.assertEqual(response.status_code, 404)
 
+    def test_temporary(self):
+        response = self.client.get(f'/group/{self.post.group.slug}/')
+        self.assertEqual(response.status_code, 200)
+
     def test_img_is_inst(self):
+
         with open('media/posts/file.jpg', 'rb') as img:
-            self.post = self.client.post(f'/profile/{self.user.username}/{self.post.id}/edit/',
-                {
-                    'author': self.user,
-                    'text': 'post with image',
-                    'group': self.group,
-                    'image': img
-                }, follow=True)
+            self.post.image = img
+            self.post.save()
+                # = self.client.post(f'/profile/{self.user.username}/{self.post.id}/edit/',
+                # {
+                #     'author': self.user,
+                #     'text': 'post with image',
+                #     'group': self.group,
+                #     'image': img
+                # }, follow=True)
         self.assertEqual(self.post.status_code, 200)
         self.assertEqual(Post.objects.count(), 1)
         urls = [
