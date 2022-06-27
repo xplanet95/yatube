@@ -66,28 +66,29 @@ class UsersPagesTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_img_is_inst(self):
-
+        self.client.login(username="sarah", password="12345")
         with open('media/posts/file.jpg', 'rb') as img:
-            self.post.image = img
-            self.post.save()
-                # = self.client.post(f'/profile/{self.user.username}/{self.post.id}/edit/',
-                # {
-                #     'author': self.user,
-                #     'text': 'post with image',
-                #     'group': self.group,
-                #     'image': img
-                # }, follow=True)
-        self.assertEqual(self.post.status_code, 200)
-        self.assertEqual(Post.objects.count(), 1)
-        urls = [
-            '',
-        #     f'/profile/{self.user.username}/',
-        #     # f'/profile/{self.user.username}/{self.post.id}/',
-        #     # f'/group/{self.post.group.slug}/',
-        ]
-        for url in urls:
-            response = self.client.get(url)
-            self.assertContains(response, f'<img', count=None, msg_prefix='', html=False)
+            # self.post.image = img
+            # self.post.save()
+            post = self.client.post(reverse('new_post'),
+            {
+                'author': self.user,
+                'text': 'post with image',
+                'group': self.group,
+                'image': img
+            }, follow=True)
+
+        # self.assertEqual(self.post.status_code, 200)
+        # self.assertEqual(Post.objects.count(), 1)
+            urls = [
+                '',
+            #     f'/profile/{self.user.username}/',
+            #     # f'/profile/{self.user.username}/{self.post.id}/',
+            #     # f'/group/{self.post.group.slug}/',
+            ]
+            for url in urls:
+                response = self.client.get(url)
+                self.assertContains(response, f'<img', count=None, msg_prefix='', html=False)
 
         # self.assertIn(post.text, response.content)
             # self.assertEqual(response.content, post.text)
