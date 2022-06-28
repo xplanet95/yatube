@@ -1,6 +1,6 @@
 from django.contrib import admin
 # из файла models импортируем модель Post
-from .models import Post, Group
+from .models import Post, Group, Comment
 
 
 class PostAdmin(admin.ModelAdmin):
@@ -20,6 +20,14 @@ class GroupAdmin(admin.ModelAdmin):
     empty_value_display = "-пусто-"
 
 
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ("pk", "author", "created", "text")
+    search_fields = ("text",)
+    list_filter = ("author", "created",)
+    empty_value_display = "-пусто-"
+
+
 # при регистрации модели Post источником конфигурации для неё назначаем класс PostAdmin
 admin.site.register(Post, PostAdmin)
 admin.site.register(Group, GroupAdmin)
+admin.site.register(Comment, CommentAdmin)
