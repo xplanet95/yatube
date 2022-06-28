@@ -45,7 +45,8 @@ def new_post(request, post=None):
             Post.objects.create(
                 text=form.cleaned_data['text'],
                 author=request.user,
-                group=form.cleaned_data['group']
+                group=form.cleaned_data['group'],
+                image=form.cleaned_data['image']
             )
             return redirect('index')
     form = PostForm()
