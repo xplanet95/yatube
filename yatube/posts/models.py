@@ -28,3 +28,15 @@ class Post(models.Model):
 
 class Meta:
     ordering = ['-pub_date']
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    text = models.TextField(verbose_name='Текст комментария')
+    created = models.DateTimeField('Дата публикации', auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created']
+
+

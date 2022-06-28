@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Post, Group, User
-from .forms import PostForm
+from .models import Post, Group, User, Comment
+from .forms import PostForm, CommentForm
 from django.core.paginator import Paginator
 # from django.views.generic import CreateView
 # from django.urls import reverse_lazy
@@ -74,14 +74,33 @@ def profile(request, username):
 
 
 def post_view(request, username, post_id):
-    post_list = Post.objects.filter(author_id=User.objects.get(username=username))
+    profile_id = User.objects.get(username=username)
+    post_list = Post.objects.filter(author_id=profile_id)
     post = post_list.get(id=post_id)
     cnt_of_posts = post_list.count()
+    comments_list = Comment.objects.all()
+    form = CommentForm(instance=None)
     context = {'post': post,
                'cnt_of_posts': cnt_of_posts,
-               'username': post.author}
+               'username': post.author,
+               'form': form,
+               'items': comments_list,
+               }
     response = render(request, "post.html", context)
     return response
+
+
+def add_comment(request, username, post_id):
+    profile = get_object_or_404(User, username=username)
+    post = get_object_or_404(Post, pk=post_id, author=profile)
+    form = CommentForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            Comment.objects.create(
+                post=post,
+                author=User.objects.get(username=request.user),
+                text=form.cleaned_data['text'])
+            return redirect("post", username=username, post_id=post_id)
 
 
 @login_required
