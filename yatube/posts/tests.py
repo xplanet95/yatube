@@ -2,6 +2,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from .models import User, Post, Group
+from django.core.cache import cache
 
 
 class UsersPagesTest(TestCase):
@@ -65,37 +66,38 @@ class UsersPagesTest(TestCase):
         response = self.client.get(f'/group/{self.post.group.slug}/')
         self.assertEqual(response.status_code, 200)
 
-    def test_img_is_inst(self):
-        self.client.login(username="sarah", password="12345")
-        with open('media/posts/file.jpg', 'rb') as img:
-            # self.post.image = img
-            # self.post.save()
-            post = self.client.post(reverse('new_post'),
-            {
-                'author': self.user,
-                'text': 'post with image',
-                'group': self.group,
-                'image': img
-            }, follow=True)
-
-        # self.assertEqual(self.post.status_code, 200)
-        # self.assertEqual(Post.objects.count(), 1)
+    def test_correct_upload_img(self):
+        cache.clear()
+        with open('media/posts/test.txt', 'rb') as img:
+            self.post.image = img.name
+            self.post.save()
             urls = [
                 '',
-            #     f'/profile/{self.user.username}/',
-            #     # f'/profile/{self.user.username}/{self.post.id}/',
-            #     # f'/group/{self.post.group.slug}/',
+            ]
+            for url in urls:
+                response = self.client.get(url)
+                self.assertNotContains(response, f'<img', msg_prefix='', html=False)
+
+    def test_img_is_inst(self):
+        cache.clear()
+        with open('media/posts/file.jpg', 'rb') as img:
+            # post = self.client.post(reverse('new_post'),
+            # {
+            #     'author': self.user,
+            #     'text': 'post with image',
+            #     'group': self.group,
+            #     'image': img
+            # }, follow=True)
+            self.post.text = 'post with image'
+            self.post.image = img.name
+            self.post.save()
+            urls = [
+                '',
+                f'/profile/{self.user.username}/',
+                f'/profile/{self.user.username}/{self.post.id}/',
+                f'/group/{self.post.group.slug}/',
             ]
             for url in urls:
                 response = self.client.get(url)
                 self.assertContains(response, f'<img', count=None, msg_prefix='', html=False)
 
-        # self.assertIn(post.text, response.content)
-            # self.assertEqual(response.content, post.text)
-# class TestStringMethods(TestCase):
-#     def test_length(self):
-#                 self.assertEqual(len('yatube'), 6)
-#
-#     def test_show_msg(self):
-#                 # действительно ли первый аргумент — True?
-#                 self.assertTrue(False, msg="Важная проверка на истинность")
