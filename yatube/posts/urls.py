@@ -7,7 +7,7 @@ urlpatterns = [
     # Главная страница
     path("", views.index, name="index"),
     path("new/", views.new_post, name='new_post'),
-    path("group/<str:slug>/", views.group_posts),
+    path("group/<str:slug>/", views.group_posts, name='group'),
     # Профайл пользователя
     path('profile/<str:username>/', views.profile, name='profile'),
     # Просмотр записи

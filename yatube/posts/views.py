@@ -78,7 +78,7 @@ def post_view(request, username, post_id):
     post_list = Post.objects.filter(author_id=profile_id)
     post = post_list.get(id=post_id)
     cnt_of_posts = post_list.count()
-    comments_list = Comment.objects.all()
+    comments_list = Comment.objects.filter(post_id=post_id)
     form = CommentForm(instance=None)
     context = {'post': post,
                'cnt_of_posts': cnt_of_posts,
