@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Post, Group, User, Comment
+from .models import Post, Group, User, Comment, Follow
 from .forms import PostForm, CommentForm
 from django.core.paginator import Paginator
 # from django.views.generic import CreateView
@@ -74,6 +74,7 @@ def profile(request, username):
 
 
 def post_view(request, username, post_id):
+    authors_list = Follow.objects.filter(user=request.user).author
     profile_id = User.objects.get(username=username)
     post_list = Post.objects.filter(author_id=profile_id)
     post = post_list.get(id=post_id)
@@ -85,6 +86,7 @@ def post_view(request, username, post_id):
                'username': post.author,
                'form': form,
                'items': comments_list,
+               'following': authors_list,
                }
     response = render(request, "post.html", context)
     return response
@@ -164,3 +166,26 @@ def page_not_found(request, exception):
 
 def server_error(request):
     return render(request, "misc/500.html", status=500)
+
+
+@login_required
+def follow_index(request):
+
+    authors_list = Follow.objects.filter(user=request.user).author
+    post_list = Post.objects.filter(author__in=authors_list)
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get('page')  # переменная в URL с номером запрошенной страницы
+    page = paginator.get_page(page_number)
+    context = {
+        'page': page,
+    }
+    return render(request, "follow.html", context)
+
+@login_required
+def profile_follow(request, username):
+    Follow.objects.create(user=request.user, author=username)
+
+
+@login_required
+def profile_unfollow(request, username):
+    Follow.objects.get(user=request.user, author=username,).delete()
