@@ -112,3 +112,6 @@ class UsersPagesTest(TestCase):
         self.post.save()
         response = self.client.get(reverse('index'))
         self.assertNotContains(response, self.post.text, msg_prefix='', html=False)
+        cache.clear()
+        response = self.client.get(reverse('index'))
+        self.assertContains(response, self.post.text, msg_prefix='', html=False)
