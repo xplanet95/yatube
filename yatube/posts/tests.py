@@ -22,6 +22,13 @@ class UsersPagesTest(TestCase):
             author=self.user,
             group=self.group)
 
+        self.urls = [
+            '',
+            f'/profile/{self.user.username}/',
+            f'/profile/{self.user.username}/{self.post.id}/',
+            f'/group/{self.post.group.slug}/',
+        ]
+
     def test_profile_page_create(self):
         response = self.client.get(f'/profile/{self.user.username}/')
         self.assertEqual(response.status_code, 200)
@@ -39,19 +46,21 @@ class UsersPagesTest(TestCase):
                              fetch_redirect_response=True)
 
     def test_after_publish_post(self):
-        urls = ['', f'/profile/{self.user.username}/', f'/profile/{self.user.username}/{self.post.id}/']
-        for url in urls:
+        cache.clear()
+        for url in self.urls:
             response = self.client.get(url)
-            self.assertContains(response, self.post.text.replace('\'', '&#39;'), count=None, msg_prefix='', html=False)
+            # print(response.content.decode())
+            self.assertContains(response, self.post.text.replace('\'', '&#39;'),
+                                count=None, status_code=200, msg_prefix='', html=False)
 
     def test_login_user_can_update_post(self):
+        cache.clear()
         response = self.client.get(f'/profile/{self.user.username}/{self.post.id}/')
         self.assertEqual(response.status_code, 200)
 
         self.post.text = 'New string (up\'dated)'
         self.post.save()
-        urls = ['', f'/profile/{self.user.username}/', f'/profile/{self.user.username}/{self.post.id}/']
-        for url in urls:
+        for url in self.urls:
             response = self.client.get(url)
             self.assertContains(response,
                                 self.post.text.replace('\'', '&#39;'),
@@ -62,25 +71,10 @@ class UsersPagesTest(TestCase):
         response = self.client.get(f'krakazyabra_neponatnaya!!')
         self.assertEqual(response.status_code, 404)
 
-    def test_temporary(self):
-        response = self.client.get(f'/group/{self.post.group.slug}/')
-        self.assertEqual(response.status_code, 200)
-
-    def test_correct_upload_img(self):
-        cache.clear()
-        with open('media/posts/test.txt', 'rb') as img:
-            self.post.image = img.name
-            self.post.save()
-            urls = [
-                '',
-            ]
-            for url in urls:
-                response = self.client.get(url)
-                self.assertNotContains(response, f'<img', msg_prefix='', html=False)
-
     def test_img_is_inst(self):
+        '''появится картинка у поста'''
         cache.clear()
-        with open('media/posts/file.jpg', 'rb') as img:
+        with open('C:/Dev/Yatube/yatube/media/posts/file.jpg', 'rb') as img:
             # post = self.client.post(reverse('new_post'),
             # {
             #     'author': self.user,
@@ -91,13 +85,30 @@ class UsersPagesTest(TestCase):
             self.post.text = 'post with image'
             self.post.image = img.name
             self.post.save()
-            urls = [
-                '',
-                f'/profile/{self.user.username}/',
-                f'/profile/{self.user.username}/{self.post.id}/',
-                f'/group/{self.post.group.slug}/',
-            ]
-            for url in urls:
+            for url in self.urls:
                 response = self.client.get(url)
                 self.assertContains(response, f'<img', count=None, msg_prefix='', html=False)
 
+    def test_correct_upload_img(self):
+        '''тест что текстовый файл не загрузился в виде картинки,
+        как проверить на главной хз, они из кэша грузятся'''
+        cache.clear()
+        with open('C:/Dev/Yatube/yatube/media/posts/test.txt', 'rb') as img:
+            post = Post.objects.create(  # noqa
+                text="post with text image",
+                author=self.user,
+                group=self.group,
+                image=img.name)
+            urls = [
+                f'/profile/{self.user.username}/{self.post.id}/',
+            ]
+            for url in urls:
+                response = self.client.get(url)
+                self.assertNotContains(response, f'<img', msg_prefix='', html=False)
+
+    def test_cache_index(self):
+        '''подгрузится текст из кэша и на главной текст не обновится'''
+        self.post.text = 'cache test'
+        self.post.save()
+        response = self.client.get(reverse('index'))
+        self.assertNotContains(response, self.post.text, msg_prefix='', html=False)
