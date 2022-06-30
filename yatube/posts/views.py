@@ -59,6 +59,8 @@ def new_post(request, post=None):
 
 
 def profile(request, username):
+    profile = get_object_or_404(User, username=request.user)
+    authors_list = Follow.objects.filter(user=User.objects.get(username=request.user.username).id)
     username = get_object_or_404(User, username=username)
     post_list = Post.objects.filter(author_id=User.objects.get(username=username)).order_by('-pub_date')
     cnt_of_posts = post_list.count()
@@ -68,7 +70,10 @@ def profile(request, username):
     context = {'page': page,
                'paginator': paginator,
                'cnt_of_posts': cnt_of_posts,
-               'username': username}
+               'username': username,
+               'following': authors_list,
+               'profile': profile,
+               }
     response = render(request, "profile.html", context)
     return response
 
@@ -86,7 +91,6 @@ def post_view(request, username, post_id):
                'username': post.author,
                'form': form,
                'items': comments_list,
-               'following': authors_list,
                }
     response = render(request, "post.html", context)
     return response
@@ -170,8 +174,7 @@ def server_error(request):
 
 @login_required
 def follow_index(request):
-
-    authors_list = Follow.objects.filter(user=request.user).author
+    authors_list = Follow.objects.filter(user=request.user.username)
     post_list = Post.objects.filter(author__in=authors_list)
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')  # переменная в URL с номером запрошенной страницы
@@ -181,11 +184,17 @@ def follow_index(request):
     }
     return render(request, "follow.html", context)
 
+
 @login_required
 def profile_follow(request, username):
-    Follow.objects.create(user=request.user, author=username)
+    user = User.objects.get(username=request.user.username)
+    author = User.objects.get(username=username)
+    if not get_object_or_404(Follow, user=user, author=author):
+        Follow.objects.create(user=user, author=author)
 
 
 @login_required
 def profile_unfollow(request, username):
-    Follow.objects.get(user=request.user, author=username,).delete()
+    user = User.objects.get(username=request.user.username).id
+    author = User.objects.get(username=username).id
+    Follow.objects.get(user=user, author=author).delete()
