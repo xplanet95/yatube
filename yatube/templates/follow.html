@@ -5,13 +5,10 @@
     <div class="container">
            {% include "menu.html" with index=True %}
             <!-- Вывод ленты записей -->
-                {% load cache %}
-                {% cache 20 index_page %}
                 {% for post in page %}
                   <!-- Вот он, новый include! -->
                     {% include "post_item.html" with post=post %}
                 {% endfor %}
-                {% endcache %}
     </div>
 
         <!-- Вывод паджинатора -->

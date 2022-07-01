@@ -6,13 +6,10 @@
         {% include "menu.html" with index=True %}
            <h1> Последние обновления на сайте</h1>
             <!-- Вывод ленты записей -->
-                {% load cache %}
-                {% cache 20 index_page %}
                 {% for post in page %}
                   <!-- Вот он, новый include! -->
                     {% include "post_item.html" with post=post %}
                 {% endfor %}
-                {% endcache %}
                 <!-- Вывод паджинатора -->
                 {% if page.has_other_pages %}
                     {% include "paginator.html" with items=page paginator=paginator%}

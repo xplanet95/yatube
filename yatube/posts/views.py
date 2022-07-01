@@ -79,7 +79,7 @@ def profile(request, username):
 
 
 def post_view(request, username, post_id):
-    authors_list = Follow.objects.filter(user=request.user).author
+    authors_list = Follow.objects.filter(user=User.objects.get(username=request.user.username).id)
     profile_id = User.objects.get(username=username)
     post_list = Post.objects.filter(author_id=profile_id)
     post = post_list.get(id=post_id)
@@ -174,8 +174,10 @@ def server_error(request):
 
 @login_required
 def follow_index(request):
-    authors_list = Follow.objects.filter(user=request.user.username)
-    post_list = Post.objects.filter(author__in=authors_list)
+    profile = get_object_or_404(User, username=request.user.username)
+    follow_query_set = Follow.objects.filter(user=profile.id)
+    authors_list_user = User.objects.filter(username__in=follow_query_set)
+    post_list = Post.objects.filter(author__in=authors_list_user)
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')  # переменная в URL с номером запрошенной страницы
     page = paginator.get_page(page_number)
@@ -190,7 +192,39 @@ def profile_follow(request, username):
     user = User.objects.get(username=request.user.username)
     author = User.objects.get(username=username)
     if not get_object_or_404(Follow, user=user, author=author):
-        Follow.objects.create(user=user, author=author)
+        author_list = Follow.objects.create(user=user, author=author)
+        User.objects.filter(username__in=author_list)
+
+
+
+
+
+
+
+
+
+        # authors_list = Follow.objects.filter(user=User.objects.get(username=request.user.username).id)
+        # post_list = Post.objects.filter(author_id=User.objects.get(username=author)).order_by('-pub_date')
+        # paginator = Paginator(post_list, 10)
+        # cnt_of_posts = post_list.count()
+        # page_number = request.GET.get('page')  # переменная в URL с номером запрошенной страницы
+        # page = paginator.get_page(page_number)  # получить записи с нужным смещением
+        # context = {'page': page,
+        #            'paginator': paginator,
+        #            'cnt_of_posts': cnt_of_posts,
+        #            'username': username,
+        #            'following': authors_list,
+        #            'profile': author,
+        #            }
+        # response = render(request, "profile.html", context)
+    #     return response
+    # return redirect("profile", username=username)
+
+
+
+
+
+
 
 
 @login_required
