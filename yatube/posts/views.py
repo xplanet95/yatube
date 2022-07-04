@@ -10,7 +10,7 @@ from django.views.decorators.cache import cache_page
 
 @cache_page(20)
 def index(request):
-    post_list = Post.objects.order_by('-pub_date').all()  # [:11]
+    post_list = Post.objects.order_by('-pub_date').all()  # noqa [:11]
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')  # переменная в URL с номером запрошенной страницы
     page = paginator.get_page(page_number)  # получить записи с нужным смещением
@@ -64,7 +64,11 @@ def new_post(request, post=None):
 @cache_page(20)
 def profile(request, username):
     profile = get_object_or_404(User, username=request.user)
-    authors_list = Follow.objects.filter(user=User.objects.get(username=request.user.username).id)
+
+    author_list_queryset = Follow.objects.filter(user=profile)
+    author_list = [author_list_queryset[i].author.username for i in range(len(author_list_queryset))]
+    following = User.objects.filter(username__in=author_list)
+
     username = get_object_or_404(User, username=username)
     post_list = Post.objects.filter(author_id=User.objects.get(username=username)).order_by('-pub_date')
     cnt_of_posts = post_list.count()
@@ -75,7 +79,7 @@ def profile(request, username):
                'paginator': paginator,
                'cnt_of_posts': cnt_of_posts,
                'username': username,
-               'following': authors_list,
+               'following': following,
                'profile': profile,
                }
     response = render(request, "profile.html", context)
@@ -84,7 +88,11 @@ def profile(request, username):
 
 @cache_page(20)
 def post_view(request, username, post_id):
-    authors_list = Follow.objects.filter(user=User.objects.get(username=request.user.username).id)
+    profile = get_object_or_404(User, username=request.user)
+    author_list_queryset = Follow.objects.filter(user=profile)
+    author_list = [author_list_queryset[i].author.username for i in range(len(author_list_queryset))]
+    following = User.objects.filter(username__in=author_list)
+
     profile_id = User.objects.get(username=username)
     post_list = Post.objects.filter(author_id=profile_id)
     post = post_list.get(id=post_id)
@@ -96,6 +104,7 @@ def post_view(request, username, post_id):
                'username': post.author,
                'form': form,
                'items': comments_list,
+               'following': following,
                }
     response = render(request, "post.html", context)
     return response
@@ -197,7 +206,9 @@ def profile_follow(request, username):
     user = User.objects.get(username=request.user.username)
     author = User.objects.get(username=username)
     if not get_object_or_404(Follow, user=user, author=author):
-        author_list = Follow.objects.create(user=user, author=author)
+        Follow.objects.create(user=user, author=author)
+        author_list_queryset = Follow.objects.filter(user=user)
+        author_list = [author_list_queryset[i].author.username for i in range(len(author_list_queryset))]
         User.objects.filter(username__in=author_list)
 
 
