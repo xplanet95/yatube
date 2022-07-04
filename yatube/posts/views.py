@@ -68,6 +68,7 @@ def profile(request, username):
     author_list_queryset = Follow.objects.filter(user=profile)
     author_list = [author_list_queryset[i].author.username for i in range(len(author_list_queryset))]
     following = User.objects.filter(username__in=author_list)
+    cnt_of_following = following.count()
 
     username = get_object_or_404(User, username=username)
     post_list = Post.objects.filter(author_id=User.objects.get(username=username)).order_by('-pub_date')
@@ -80,6 +81,7 @@ def profile(request, username):
                'cnt_of_posts': cnt_of_posts,
                'username': username,
                'following': following,
+               'cnt_of_following': cnt_of_following,
                'profile': profile,
                }
     response = render(request, "profile.html", context)

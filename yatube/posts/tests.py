@@ -15,7 +15,7 @@ class UsersPagesTest(TestCase):
         }
         self.user = User.objects.create_user(**self.user_data)
         self.client.post('/auth/login/', self.user_data, follow=True)
-        self.group = Group.objects.create(title='Собаки', slug='dogs', description='--')
+        self.group = Group.objects.create(title='Собаки', slug='dogs', description='--')  # noqa
 
         self.post = Post.objects.create(  # noqa
             text="You're talking about things I haven't done yet in the past tense. It's driving me crazy!",
@@ -54,8 +54,9 @@ class UsersPagesTest(TestCase):
                                 count=None, status_code=200, msg_prefix='', html=False)
 
     def test_login_user_can_update_post(self):
-        cache.clear()
         response = self.client.get(f'/profile/{self.user.username}/{self.post.id}/')
+        cache.clear()
+        print(response.content.decode())
         self.assertEqual(response.status_code, 200)
 
         self.post.text = 'New string (up\'dated)'
