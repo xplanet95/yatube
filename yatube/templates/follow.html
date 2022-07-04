@@ -5,10 +5,15 @@
     <div class="container">
            {% include "menu.html" with index=True %}
             <!-- Вывод ленты записей -->
-                {% for post in page %}
-                  <!-- Вот он, новый include! -->
-                    {% include "post_item.html" with post=post %}
-                {% endfor %}
+                {% if cnt_of_posts > 0 %}
+                    {% for post in page %}
+                      <!-- Вот он, новый include! -->
+                        {% include "post_item.html" with post=post %}
+                    {% endfor %}
+                {% else %}
+                    <h1>Вы ещё ни на кого не подписались!</h1>
+                    <h5>(Или Авторы ничего не опубликовали)</h5>
+                {% endif %}
     </div>
 
         <!-- Вывод паджинатора -->

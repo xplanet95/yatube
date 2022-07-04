@@ -89,15 +89,15 @@ def profile(request, username):
 @cache_page(20)
 def post_view(request, username, post_id):
     profile = get_object_or_404(User, username=request.user)
-    author_list_queryset = Follow.objects.filter(user=profile)
+    author_list_queryset = Follow.objects.filter(user=profile)  # noqa
     author_list = [author_list_queryset[i].author.username for i in range(len(author_list_queryset))]
     following = User.objects.filter(username__in=author_list)
 
     profile_id = User.objects.get(username=username)
-    post_list = Post.objects.filter(author_id=profile_id)
+    post_list = Post.objects.filter(author_id=profile_id)  # noqa
     post = post_list.get(id=post_id)
     cnt_of_posts = post_list.count()
-    comments_list = Comment.objects.filter(post_id=post_id)
+    comments_list = Comment.objects.filter(post_id=post_id)  # noqa
     form = CommentForm(instance=None)
     context = {'post': post,
                'cnt_of_posts': cnt_of_posts,
@@ -188,63 +188,40 @@ def server_error(request):
 
 @login_required
 def follow_index(request):
-    profile = get_object_or_404(User, username=request.user.username)
-    follow_query_set = Follow.objects.filter(user=profile.id)
-    authors_list_user = User.objects.filter(username__in=follow_query_set)
-    post_list = Post.objects.filter(author__in=authors_list_user)
+    profile = get_object_or_404(User, username=request.user)
+    author_list_queryset = Follow.objects.filter(user=profile)
+    author_list = [author_list_queryset[i].author.id for i in range(len(author_list_queryset))]
+    following = User.objects.filter(username__in=author_list)
+    post_list = Post.objects.filter(author__in=author_list).order_by('-pub_date')
+    cnt_of_posts = post_list.count()
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')  # переменная в URL с номером запрошенной страницы
     page = paginator.get_page(page_number)
-    context = {
-        'page': page,
-    }
+
+    context = {'page': page,
+               'paginator': paginator,
+               'cnt_of_posts': cnt_of_posts,
+               # 'username': username,
+               'following': following,
+               'profile': profile,
+               }
     return render(request, "follow.html", context)
 
 
 @login_required
 def profile_follow(request, username):
-    user = User.objects.get(username=request.user.username)
+    print(username)
+    user = User.objects.get(username=request.user)
+    print(user)
     author = User.objects.get(username=username)
-    if not get_object_or_404(Follow, user=user, author=author):
-        Follow.objects.create(user=user, author=author)
-        author_list_queryset = Follow.objects.filter(user=user)
-        author_list = [author_list_queryset[i].author.username for i in range(len(author_list_queryset))]
-        User.objects.filter(username__in=author_list)
-
-
-
-
-
-
-
-
-
-        # authors_list = Follow.objects.filter(user=User.objects.get(username=request.user.username).id)
-        # post_list = Post.objects.filter(author_id=User.objects.get(username=author)).order_by('-pub_date')
-        # paginator = Paginator(post_list, 10)
-        # cnt_of_posts = post_list.count()
-        # page_number = request.GET.get('page')  # переменная в URL с номером запрошенной страницы
-        # page = paginator.get_page(page_number)  # получить записи с нужным смещением
-        # context = {'page': page,
-        #            'paginator': paginator,
-        #            'cnt_of_posts': cnt_of_posts,
-        #            'username': username,
-        #            'following': authors_list,
-        #            'profile': author,
-        #            }
-        # response = render(request, "profile.html", context)
-    #     return response
-    # return redirect("profile", username=username)
-
-
-
-
-
-
+    print(author)
+    Follow.objects.create(user=user, author=author)
+    return redirect('follow_index')
 
 
 @login_required
 def profile_unfollow(request, username):
-    user = User.objects.get(username=request.user.username).id
-    author = User.objects.get(username=username).id
+    user = User.objects.get(username=request.user.username)
+    author = User.objects.get(username=username)
     Follow.objects.get(user=user, author=author).delete()
+    return redirect('follow_index')
