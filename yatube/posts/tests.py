@@ -1,7 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from django.utils.safestring import mark_safe
-from .models import User, Post, Group
+from .models import User, Post, Group, Follow
 from django.core.cache import cache
 
 
@@ -56,7 +55,7 @@ class UsersPagesTest(TestCase):
     def test_login_user_can_update_post(self):
         response = self.client.get(f'/profile/{self.user.username}/{self.post.id}/')
         cache.clear()
-        print(response.content.decode())
+        # print(response.content.decode())
         self.assertEqual(response.status_code, 200)
 
         self.post.text = 'New string (up\'dated)'
@@ -116,3 +115,28 @@ class UsersPagesTest(TestCase):
         cache.clear()
         response = self.client.get(reverse('index'))
         self.assertContains(response, self.post.text, msg_prefix='', html=False)
+
+    def test_login_user_can_follow(self):
+        '''селф пользователь подписывается на юзер2, в бд появляется запись и после delete() бд пустая'''
+        user_data = {
+            'username': "hren",
+            'email': "hren@net.com",
+            'password': "12345"
+        }
+        user2 = User.objects.create_user(**user_data)
+        self.client.get(reverse('profile_follow', kwargs={'username': user2.username}))
+        follow = Follow.objects.get(user=User.objects.get(username=self.user.username),
+                                    author=User.objects.get(username=user2.username))
+        self.assertTrue(follow)
+        follow.delete()
+        self.assertEqual(Follow.objects.all().count(), 0)
+
+    def tets_follow_user_view_following(self):
+        '''создать пост юзеру2, селф юзер после подписки увидет его пост в ленте избранных, создать юзер 3 у него нет'''
+        user_data = {
+            'username': "hren",
+            'email': "hren@net.com",
+            'password': "12345"
+        }
+        user2 = User.objects.create_user(**user_data)
+
