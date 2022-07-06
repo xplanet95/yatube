@@ -1,5 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+
 from .models import Post, Group, User, Comment, Follow
 from .forms import PostForm, CommentForm
 from django.core.paginator import Paginator
@@ -8,7 +10,6 @@ from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
 
 
-@cache_page(20)
 def index(request):
     post_list = Post.objects.order_by('-pub_date').all()  # noqa [:11]
     paginator = Paginator(post_list, 10)
@@ -19,7 +20,6 @@ def index(request):
     return response
 
 
-@cache_page(20)
 def group_posts(request, slug):
     # функция get_object_or_404 получает по заданным критериям объект из базы данных
     # или возвращает сообщение об ошибке, если объект не найден
@@ -61,7 +61,6 @@ def new_post(request, post=None):
     return response
 
 
-@cache_page(20)
 def profile(request, username):
     profile = get_object_or_404(User, username=request.user)
 
@@ -88,7 +87,6 @@ def profile(request, username):
     return response
 
 
-@cache_page(20)
 def post_view(request, username, post_id):
     profile = get_object_or_404(User, username=request.user)
     author_list_queryset = Follow.objects.filter(user=profile)  # noqa
@@ -215,13 +213,13 @@ def follow_index(request):
 def profile_follow(request, username):
     user = User.objects.get(username=request.user)
     author = User.objects.get(username=username)
-    Follow.objects.create(user=user, author=author)
-    return redirect('follow_index')
+    Follow.objects.create(user=user, author=author)  # noqa
+    return redirect(reverse('profile', kwargs={'username': author.username}))
 
 
 @login_required
 def profile_unfollow(request, username):
     user = User.objects.get(username=request.user.username)
     author = User.objects.get(username=username)
-    Follow.objects.get(user=user, author=author).delete()
-    return redirect('follow_index')
+    Follow.objects.get(user=user, author=author).delete()  # noqa
+    return redirect(reverse('profile', kwargs={'username': author.username}))
