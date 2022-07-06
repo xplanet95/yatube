@@ -112,6 +112,7 @@ def post_view(request, username, post_id):
     return response
 
 
+@login_required
 def add_comment(request, username, post_id):
     profile = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, pk=post_id, author=profile)

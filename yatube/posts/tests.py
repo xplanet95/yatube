@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from .models import User, Post, Group, Follow
+from .models import User, Post, Group, Follow, Comment
 from django.core.cache import cache
 
 
@@ -118,12 +118,12 @@ class UsersPagesTest(TestCase):
 
     def test_login_user_can_follow(self):
         '''селф пользователь подписывается на юзер2, в бд появляется запись и после delete() бд пустая'''
-        user_data = {
+        user_data_2 = {
             'username': "hren",
             'email': "hren@net.com",
             'password': "12345"
         }
-        user2 = User.objects.create_user(**user_data)
+        user2 = User.objects.create_user(**user_data_2)
         self.client.get(reverse('profile_follow', kwargs={'username': user2.username}))
         follow = Follow.objects.get(user=User.objects.get(username=self.user.username),
                                     author=User.objects.get(username=user2.username))
@@ -132,11 +132,57 @@ class UsersPagesTest(TestCase):
         self.assertEqual(Follow.objects.all().count(), 0)
 
     def tets_follow_user_view_following(self):
-        '''создать пост юзеру2, селф юзер после подписки увидет его пост в ленте избранных, создать юзер 3 у него нет'''
-        user_data = {
+        '''создать пост юзеру2, селф юзер после подписки на юзера2 увидит его пост в ленте избранных,
+        создать юзер 3, залогиниться, юзер3 в избранных не увидит поста юзер2 тк не подписан'''
+        user_data_2 = {
             'username': "hren",
             'email': "hren@net.com",
             'password': "12345"
         }
-        user2 = User.objects.create_user(**user_data)
+        user2 = User.objects.create_user(**user_data_2)
+        user_data_3 = {
+            'username': "dearq",
+            'email': "dearq@net.com",
+            'password': "12345"
+        }
+        user3 = User.objects.create_user(**user_data_3)
+        post = Post.objects.create(  # noqa
+            text="user 2 post",
+            author=user3,
+            group=self.group)
+        self.client.get(reverse('profile_follow', kwargs={'username': user2.username}))
+        response = self.client.get(reverse('follow_index'))
+        self.assertContains(response, post.text, msg_prefix='', html=False)
+        cache.clear()
 
+        response = self.client.get('')
+        self.assertContains(response, post.text, msg_prefix='', html=False)
+        cache.clear()
+
+        self.client.logout()
+        self.client.post('/auth/login/', user_data_3, follow=True)
+        response = self.client.get(reverse('follow_index'))
+        self.assertNotContains(response, post.text, msg_prefix='', html=False)
+
+    def test_only_login_user_can_comment(self):
+        '''Только авторизованный пользователь сможет оставить коммент'''
+        cache.clear()
+        comment_data = {'text': 'New comment'}
+        self.client.post(reverse('add_comment', kwargs={'username': self.user.username,
+                                                        'post_id': self.post.id}), comment_data)
+        response = self.client.get(reverse('post', kwargs={'username': self.user.username,
+                                                        'post_id': self.post.id}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Comment.objects.all().count(), 1)
+        self.assertContains(response, Comment.objects.get(id=1).text)
+
+        cache.clear()
+        self.client.logout()
+        comment_data = {'text': 'New comment 2'}
+        self.client.post(reverse('add_comment', kwargs={'username': self.user.username,
+                                                        'post_id': self.post.id}), comment_data)
+        self.assertEqual(Comment.objects.all().count(), 1)
+        self.assertNotContains(response, comment_data['text'])
+        response = self.client.get(reverse('post', kwargs={'username': self.user.username,
+                                                        'post_id': self.post.id}))
+        self.assertEqual(response.status_code, 404)
