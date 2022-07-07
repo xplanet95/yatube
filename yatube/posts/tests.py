@@ -23,13 +23,13 @@ class UsersPagesTest(TestCase):
 
         self.urls = [
             '',
-            f'/profile/{self.user.username}/',
-            f'/profile/{self.user.username}/{self.post.id}/',
-            f'/group/{self.post.group.slug}/',
+            reverse('profile', kwargs={'username': self.user.username}),
+            reverse('post', kwargs={'username': self.user.username, 'post_id': self.post.id}),
+            reverse('group', kwargs={'slug': self.post.group.slug}),
         ]
 
     def test_profile_page_create(self):
-        response = self.client.get(f'/profile/{self.user.username}/')
+        response = self.client.get(reverse('profile', kwargs={'username': self.user.username}))
         self.assertEqual(response.status_code, 200)
 
     def test_login_user_can_create_post(self):
@@ -53,7 +53,7 @@ class UsersPagesTest(TestCase):
                                 count=None, status_code=200, msg_prefix='', html=False)
 
     def test_login_user_can_update_post(self):
-        response = self.client.get(f'/profile/{self.user.username}/{self.post.id}/')
+        response = self.client.get(reverse('post', kwargs={'username': self.user.username, 'post_id': self.post.id}))
         cache.clear()
         # print(response.content.decode())
         self.assertEqual(response.status_code, 200)
@@ -100,7 +100,7 @@ class UsersPagesTest(TestCase):
                 group=self.group,
                 image=img.name)
             urls = [
-                f'/profile/{self.user.username}/{self.post.id}/',
+                reverse('post', kwargs={'username': self.user.username, 'post_id': self.post.id}),
             ]
             for url in urls:
                 response = self.client.get(url)
@@ -125,11 +125,11 @@ class UsersPagesTest(TestCase):
         }
         user2 = User.objects.create_user(**user_data_2)
         self.client.get(reverse('profile_follow', kwargs={'username': user2.username}))
-        follow = Follow.objects.get(user=User.objects.get(username=self.user.username),
+        follow = Follow.objects.get(user=User.objects.get(username=self.user.username),  # noqa
                                     author=User.objects.get(username=user2.username))
         self.assertTrue(follow)
         follow.delete()
-        self.assertEqual(Follow.objects.all().count(), 0)
+        self.assertEqual(Follow.objects.all().count(), 0)  # noqa
 
     def tets_follow_user_view_following(self):
         '''создать пост юзеру2, селф юзер после подписки на юзера2 увидит его пост в ленте избранных,
@@ -183,6 +183,5 @@ class UsersPagesTest(TestCase):
                                                         'post_id': self.post.id}), comment_data)
         self.assertEqual(Comment.objects.all().count(), 1)
         self.assertNotContains(response, comment_data['text'])
-        response = self.client.get(reverse('post', kwargs={'username': self.user.username,
-                                                        'post_id': self.post.id}))
+        response = self.client.get(reverse('post', kwargs={'username': self.user.username, 'post_id': self.post.id}))
         self.assertEqual(response.status_code, 404)
