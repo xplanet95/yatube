@@ -9,6 +9,7 @@ from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
 
 
+@cache_page(20, key_prefix='index_page')
 def index(request):
     post_list = Post.objects.order_by('-pub_date').all()  # noqa [:11]
     paginator = Paginator(post_list, 10)
@@ -42,7 +43,7 @@ def group_posts(request, slug):
 @login_required
 def new_post(request, post=None):
     if request.method == 'POST':
-        form = PostForm(request.POST)
+        form = PostForm(request.POST, files=request.FILES or None,)
         if form.is_valid():
             Post.objects.create(  # noqa
                 text=form.cleaned_data['text'],
@@ -100,6 +101,7 @@ def profile(request, username):
                }
     response = render(request, "profile.html", context)
     return response
+
 
 
 def post_view(request, username, post_id):
