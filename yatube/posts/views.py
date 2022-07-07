@@ -1,7 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-
 from .models import Post, Group, User, Comment, Follow
 from .forms import PostForm, CommentForm
 from django.core.paginator import Paginator
@@ -62,13 +61,31 @@ def new_post(request, post=None):
 
 
 def profile(request, username):
-    profile = get_object_or_404(User, username=request.user)
+    if request.user.is_authenticated:
+        profile = User.objects.get(username=request.user)
 
-    author_list_queryset = Follow.objects.filter(user=profile)  # noqa
-    author_list = [author_list_queryset[i].author.username for i in range(len(author_list_queryset))]
-    following = User.objects.filter(username__in=author_list)
-    cnt_of_following = following.count()
+        author_list_queryset = Follow.objects.filter(user=profile)  # noqa
+        author_list = [author_list_queryset[i].author.username for i in range(len(author_list_queryset))]
+        following = User.objects.filter(username__in=author_list)
+        cnt_of_following = following.count()
 
+        username = get_object_or_404(User, username=username)
+        post_list = Post.objects.filter(author_id=User.objects.get(username=username)).order_by('-pub_date')  # noqa
+        cnt_of_posts = post_list.count()
+        paginator = Paginator(post_list, 10)
+        page_number = request.GET.get('page')  # переменная в URL с номером запрошенной страницы
+        page = paginator.get_page(page_number)  # получить записи с нужным смещением
+        context = {'page': page,
+                   'paginator': paginator,
+                   'cnt_of_posts': cnt_of_posts,
+                   'username': username,
+                   'following': following,
+                   'cnt_of_following': cnt_of_following,
+                   }
+        response = render(request, "profile.html", context)
+        return response
+
+    following = ''
     username = get_object_or_404(User, username=username)
     post_list = Post.objects.filter(author_id=User.objects.get(username=username)).order_by('-pub_date')  # noqa
     cnt_of_posts = post_list.count()
@@ -80,19 +97,12 @@ def profile(request, username):
                'cnt_of_posts': cnt_of_posts,
                'username': username,
                'following': following,
-               'cnt_of_following': cnt_of_following,
-               'profile': profile,
                }
     response = render(request, "profile.html", context)
     return response
 
 
 def post_view(request, username, post_id):
-    profile = get_object_or_404(User, username=request.user)
-    author_list_queryset = Follow.objects.filter(user=profile)  # noqa
-    author_list = [author_list_queryset[i].author.username for i in range(len(author_list_queryset))]
-    following = User.objects.filter(username__in=author_list)
-
     profile_id = User.objects.get(username=username)
     post_list = Post.objects.filter(author_id=profile_id)  # noqa
     post = post_list.get(id=post_id)
@@ -104,7 +114,6 @@ def post_view(request, username, post_id):
                'username': post.author,
                'form': form,
                'items': comments_list,
-               'following': following,
                }
     response = render(request, "post.html", context)
     return response

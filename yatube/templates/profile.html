@@ -33,7 +33,7 @@
                                                 Записей: {{ cnt_of_posts }}
                                             </div>
                                     </li>
-                                    {% if username != profile %}
+                                    {% if username != request.user and request.user.is_authenticated %}
                                     <li class="list-group-item">
                                         {% if username in following %}
                                         <a class="btn btn-lg btn-light"
