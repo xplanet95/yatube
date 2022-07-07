@@ -131,6 +131,7 @@ def add_comment(request, username, post_id):
                 author=User.objects.get(username=request.user),
                 text=form.cleaned_data['text'])
             return redirect("post", username=username, post_id=post_id)
+    return redirect("post", username=username, post_id=post_id)
 
 
 @login_required
