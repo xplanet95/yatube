@@ -45,7 +45,7 @@ def new_post(request, post=None):
     if request.method == 'POST':
         form = PostForm(request.POST)
         if form.is_valid():
-            Post.objects.create(
+            Post.objects.create(  # noqa
                 text=form.cleaned_data['text'],
                 author=request.user,
                 group=form.cleaned_data['group'],
@@ -64,13 +64,13 @@ def new_post(request, post=None):
 def profile(request, username):
     profile = get_object_or_404(User, username=request.user)
 
-    author_list_queryset = Follow.objects.filter(user=profile)
+    author_list_queryset = Follow.objects.filter(user=profile)  # noqa
     author_list = [author_list_queryset[i].author.username for i in range(len(author_list_queryset))]
     following = User.objects.filter(username__in=author_list)
     cnt_of_following = following.count()
 
     username = get_object_or_404(User, username=username)
-    post_list = Post.objects.filter(author_id=User.objects.get(username=username)).order_by('-pub_date')
+    post_list = Post.objects.filter(author_id=User.objects.get(username=username)).order_by('-pub_date')  # noqa
     cnt_of_posts = post_list.count()
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')  # переменная в URL с номером запрошенной страницы
@@ -117,7 +117,7 @@ def add_comment(request, username, post_id):
     form = CommentForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
-            Comment.objects.create(
+            Comment.objects.create(  # noqa
                 post=post,
                 author=User.objects.get(username=request.user),
                 text=form.cleaned_data['text'])
@@ -137,7 +137,7 @@ def post_edit(request, username, post_id):
     if request.method == 'POST':
         if form.is_valid():
             form.save()
-            return redirect("post", username=request.user.username, post_id=post_id)
+            return redirect('post', username=request.user.username, post_id=post_id)
     context = {'form': form, 'post': post}
     return render(request, 'new.html', context)
 
@@ -190,10 +190,10 @@ def server_error(request):
 @login_required
 def follow_index(request):
     profile = get_object_or_404(User, username=request.user)
-    author_list_queryset = Follow.objects.filter(user=profile)
+    author_list_queryset = Follow.objects.filter(user=profile)  # noqa
     author_list = [author_list_queryset[i].author.id for i in range(len(author_list_queryset))]
     following = User.objects.filter(username__in=author_list)
-    post_list = Post.objects.filter(author__in=author_list).order_by('-pub_date')
+    post_list = Post.objects.filter(author__in=author_list).order_by('-pub_date')  # noqa
     cnt_of_posts = post_list.count()
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')  # переменная в URL с номером запрошенной страницы
