@@ -26,10 +26,7 @@ SECRET_KEY = '88(bj0zuiiqecc^%0@e125hg6cs)7_z1^36hdfo=7_59@bvrtv'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "[::1]",
-    "testserver",
+        "*",
 ]
 
 INTERNAL_IPS = [
