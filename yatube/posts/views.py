@@ -222,13 +222,18 @@ def follow_index(request):
 def profile_follow(request, username):
     user = User.objects.get(username=request.user)
     author = User.objects.get(username=username)
-    Follow.objects.create(user=user, author=author)  # noqa
-    return redirect(reverse('profile', kwargs={'username': author.username}))
+    if request.user.username != author.username:
+        if Follow.objects.filter(user=user, author=author).exists() is not True:  # noqa
+            Follow.objects.create(user=user, author=author)  # noqa
+            return redirect(reverse('profile', kwargs={'username': author.username}))
+    return redirect(reverse('profile', kwargs={'username': request.user.username}))
 
 
 @login_required
 def profile_unfollow(request, username):
     user = User.objects.get(username=request.user.username)
     author = User.objects.get(username=username)
-    Follow.objects.get(user=user, author=author).delete()  # noqa
-    return redirect(reverse('profile', kwargs={'username': author.username}))
+    if request.user.username != author.username:
+        Follow.objects.get(user=user, author=author).delete()  # noqa
+        return redirect(reverse('profile', kwargs={'username': author.username}))
+    return redirect(reverse('profile', kwargs={'username': request.user.username}))
